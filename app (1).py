@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 
 # ✅ Load the trained model
-model = load_model('best_model.h5')
+model = load_model('final_model.h5')
 
 # ✅ Get class names from training if available (A-Z assumed)
 # This assumes your folders were A, B, C, ... Z
