@@ -3,57 +3,56 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
 
-# Load the trained model
-model = load_model('final_model.h5')
+# ✅ Load the trained model
+model = load_model('best_model.h5')
 
-# Mapping prediction index to sign language letters
-labels = {i: chr(65 + i) for i in range(26)}  # 0 -> 'A', 1 -> 'B', ..., 25 -> 'Z'
+# ✅ Get class names from training if available (A-Z assumed)
+# This assumes your folders were A, B, C, ... Z
+class_names = [chr(i) for i in range(65, 91)]  # ['A', 'B', ..., 'Z']
 
-# Function to process and predict
+# ✅ Predict Function with Preprocessing
 def predict_image(img):
-    img = img.convert('RGB')  # Ensure 3 channels
-    img = img.resize((64, 64))  # Resize to match model input
-    img = np.array(img) / 255.0  # Normalize
-    img = img.reshape(1, 64, 64, 3)  # Reshape to (1, 64, 64, 3)
-
+    img = img.convert('RGB')                      # Ensure 3 channels
+    img = img.resize((64, 64))                    # Resize to model's expected input
+    img = np.array(img) / 255.0                   # Normalize pixel values
+    img = img.reshape(1, 64, 64, 3)               # Reshape for prediction
     prediction = model.predict(img)
     predicted_class = np.argmax(prediction, axis=1)[0]
-    predicted_label = labels.get(predicted_class, 'Unknown')
-    return predicted_class, predicted_label
+    predicted_label = class_names[predicted_class]
+    return predicted_label
 
-# Streamlit UI
+# ✅ Streamlit UI
 st.set_page_config(page_title="Sign Language Translator", layout="centered")
-
 st.title("🤟 Sign Language to Text Translator")
-st.markdown("Upload an image or take one using the camera to translate sign language into a letter.")
+st.markdown("Upload an image or use your webcam to translate sign language into text.")
 
-# File uploader
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# 📁 Upload image
+uploaded_file = st.file_uploader("Upload an image of a hand sign", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', use_column_width=True)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    if st.button('Translate Uploaded Image'):
+    if st.button("Predict from Uploaded Image"):
         with st.spinner("Predicting..."):
-            pred_class, pred_label = predict_image(image)
-            st.success(f"Predicted Letter: **{pred_label}** (Class: {pred_class})")
+            result = predict_image(image)
+            st.success(f"✅ Predicted Letter: **{result}**")
 
-# Webcam input
+# 📷 Camera input
 st.markdown("---")
 st.header("📸 Or Take a Picture Using Webcam")
-
 camera_image = st.camera_input("Take a photo")
 
 if camera_image is not None:
     image = Image.open(camera_image)
-    st.image(image, caption='Captured Image', use_column_width=True)
+    st.image(image, caption="Captured Image", use_column_width=True)
 
-    if st.button('Translate Camera Image'):
+    if st.button("Predict from Camera Image"):
         with st.spinner("Predicting..."):
-            pred_class, pred_label = predict_image(image)
-            st.success(f"Predicted Letter: **{pred_label}** (Class: {pred_class})")
+            result = predict_image(image)
+            st.success(f"✅ Predicted Letter: **{result}**")
 
 st.markdown("---")
-st.caption("Built with ❤️ using Streamlit and TensorFlow")
+st.caption("🧠 Model trained on your dataset — powered by Streamlit & TensorFlow.")
+
 
